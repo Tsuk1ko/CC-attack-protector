@@ -1,7 +1,7 @@
 #!/bin/bash
 #配置
-LOG_FILES="/www/wwwlogs/*.moe.log"
-LIMIT_MAX_TIMES=300
+LOG_FILES="/www/wwwlogs/*.log"
+LIMIT_MAX_TIMES=70
 LIMIT_TIMES=25
 LIMIT_MAX_SIZE=52428800    #50MiB
 SCKEY=""
@@ -56,14 +56,15 @@ if [ -n "`cat $TMP_LIST`" ]; then
         if [ -z "$TEST_R" ]; then
             if [ $TIME_FLAG -eq 1 ]; then
                 echo -e "\033[033m`date`\033[0m"
+                date >> "$PWDIR"/ban.log
                 TIME_FLAG=0
             fi
-            bash "$PWDIR"/ban.sh -b $TMP_LINE
-            IP_LIST=%{IP_LIST}" $TMP_LINE"
+            bash "$PWDIR"/ban.sh -b $TMP_LINE &
+            IP_LIST=${IP_LIST}"$TMP_LINE "
         fi
     done
     if [ -n "$SCKEY" ]; then
-    	curl -d "text=CC攻击警报&desp=$IP_LIST" "https://sc.ftqq.com/$SCKEY.send"
+    	curl -d "text=CC攻击警报&desp=$IP_LIST" "https://sc.ftqq.com/$SCKEY.send" >& /dev/null &
     fi
 fi
 

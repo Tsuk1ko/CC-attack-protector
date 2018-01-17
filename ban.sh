@@ -16,6 +16,7 @@ addBan(){
     if [ $# -eq 1 ]; then
         iptables -I INPUT -s $1 -j DROP
         echo "Ban $1 successfully"
+        echo "Ban $1 successfully" >> ban.log
     fi
 }
 
