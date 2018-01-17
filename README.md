@@ -1,6 +1,11 @@
 # CC attack protector
 每10秒钟检测一次指定网站日志，如果超过预设限制的（在单位时间请求数以及请求大小层面）会在防火墙层面进行阻止，并运用Server酱进行通知
 
+## TODO
+在检测条件方面还有点欠缺，容易导致误 Ban
+
+所以目前这个版本尚不能用于生产环境
+
 ## 使用
 ```bash
 git clone https://github.com/YKilin/CC-attack-protector.git
