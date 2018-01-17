@@ -9,7 +9,7 @@ showHelp(){
 
 showList(){
     echo "Baned IP list:"
-    iptables -L INPUT --line-numbers | sed -e '1d' | grep 'DROP'
+    iptables -L INPUT -n --line-numbers | sed -e '1d' | grep 'DROP'
 }
 
 addBan(){

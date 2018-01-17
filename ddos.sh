@@ -4,6 +4,7 @@ LOG_FILES="/www/wwwlogs/*.moe.log"
 LIMIT_MAX_TIMES=300
 LIMIT_TIMES=25
 LIMIT_MAX_SIZE=52428800    #50MiB
+SCKEY=""
 
 #开始
 #取得当前时间的10秒前（舍去秒个位）
@@ -48,18 +49,22 @@ IFS=$IFS_old
 TIME_FLAG=1
 if [ -n "`cat $TMP_LIST`" ]; then
     PWDIR="$( cd "$( dirname "$0" )" && pwd )"
+    IP_LIST="";
     for TMP_LINE in `cat $TMP_LIST`
     do
-        TEST_R=`iptables -L INPUT --line-numbers | grep 'DROP' | grep "$TMP_LINE"`
+        TEST_R=`iptables -L INPUT -n --line-numbers | grep 'DROP' | grep "$TMP_LINE"`
         if [ -z "$TEST_R" ]; then
             if [ $TIME_FLAG -eq 1 ]; then
                 echo -e "\033[033m`date`\033[0m"
                 TIME_FLAG=0
             fi
             bash "$PWDIR"/ban.sh -b $TMP_LINE
+            IP_LIST=%{IP_LIST}" $TMP_LINE"
         fi
     done
-    nginx -s reopen
+    if [ -n "$SCKEY" ]; then
+    	curl -d "text=CC攻击警报&desp=$IP_LIST" "https://sc.ftqq.com/$SCKEY.send"
+    fi
 fi
 
 #删除临时文件
