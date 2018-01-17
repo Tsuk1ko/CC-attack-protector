@@ -2,7 +2,7 @@
 每10秒钟检测一次指定网站日志，如果超过预设限制的会在防火墙层面进行阻止，并运用Server酱进行通知
 
 ## 使用
-```
+```bash
 git clone https://github.com/YKilin/CC-attack-protector.git
 cd CC-attack-protector
 ```
@@ -11,7 +11,7 @@ cd CC-attack-protector
 其实一般情况下前三项设置并不用动，如果发现封禁效果与理想有差异再修改
 
 建议使用 screen 来运行
-```
+```bash
 #没有 screen 就安装
 apt-get install screen
 screen
@@ -22,7 +22,7 @@ bash run.sh
 然后按下 Ctrl+A，再按下 D，即可退出 screen 界面
 
 想回去的话就
-```
+```bash
 screen -r
 ```
 
