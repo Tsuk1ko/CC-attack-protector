@@ -1,10 +1,10 @@
 #!/bin/bash
 #配置
-LOG_FILES="/www/wwwlogs/*.log"
-LIMIT_MAX_TIMES=70
-LIMIT_TIMES=25
-LIMIT_MAX_SIZE=52428800    #50MiB
-SCKEY=""
+LOG_FILES="/www/wwwlogs/*.log"	#指定日志文件
+LIMIT_MAX_TIMES=70				#在10秒内超过这么多连接日志数的会直接Ban
+LIMIT_TIMES=15					#在10秒内超过这么多连接日志数的会检测请求总大小有没有超过下面设定的这个值
+LIMIT_MAX_SIZE=52428800			#52428800 = 50MiB
+SCKEY=""	#Server酱服务的SCKRY，用于通知CC攻击情况，https://sc.ftqq.com
 
 #开始
 #取得当前时间的10秒前（舍去秒个位）

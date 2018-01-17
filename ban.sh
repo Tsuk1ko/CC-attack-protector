@@ -1,10 +1,10 @@
 #!/bin/bash
 
 showHelp(){
-    echo -e "-l\t\tPrint baned IP list"
-    echo -e "-b IP\t\tBan the specified IP"
-    echo -e "-u Num\t\tUnban IP of the specified number, you can get it in baned IP list"
-    echo -e "-ua\t\tUnban all IP"
+    echo -e "-l\t\t输出封禁IP列表"
+    echo -e "-b IP\t\t封禁指定IP"
+    echo -e "-u Num\t\t解封指定序号的IP，你可以在封禁IP列表中得到序号"
+    echo -e "-ua\t\t解封所有IP"
 }
 
 showList(){
