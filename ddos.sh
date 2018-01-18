@@ -29,6 +29,9 @@ do
 	CUR_IP=`echo $LIST_LINE | awk '{print $2}'`
 	#判断重复请求次数
 	CUR_REPEAT=`grep -h $CUR_IP $TMP_LOG | awk '{print $7}' | sort | uniq -c | sort -nr | head -1 | awk '{print $1}'`
+	if [ "${1}x" = "--testx" ]; then
+		echo -e "\033[033m[${NOW_DATE}x]\033[0m\t$CUR_TIMES\t$CUR_REPEAT\t$CUR_IP"
+	fi
 	if [ $CUR_REPEAT -ge $LIMIT_REPEAT ]; then
 		echo "$CUR_IP REPEAT:$CUR_REPEAT>=$LIMIT_REPEAT" >> $TMP_LIST
 	#判断访问量
