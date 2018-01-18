@@ -1,40 +1,42 @@
 #!/bin/bash
 
 showHelp(){
-    echo -e "-l\t\t输出封禁IP列表"
-    echo -e "-b IP\t\t封禁指定IP"
-    echo -e "-u Num\t\t解封指定序号的IP，你可以在封禁IP列表中得到序号"
-    echo -e "-ua\t\t解封所有IP"
+	echo -e "-l\t\t输出封禁IP列表"
+	echo -e "-b IP\t\t封禁指定IP"
+	echo -e "-u Num\t\t解封指定序号的IP，你可以在封禁IP列表中得到序号"
+	echo -e "-ua\t\t解封所有IP"
 }
 
 showList(){
-    echo "Baned IP list:"
-    iptables -L INPUT -n --line-numbers | sed -e '1d' | grep 'DROP'
+	echo "Baned IP list:"
+	iptables -L INPUT -n --line-numbers | sed -e '1d' | grep 'DROP'
 }
 
 addBan(){
-    if [ $# -eq 1 ]; then
-        iptables -I INPUT -s $1 -j DROP
-        echo "Ban $1 successfully"
-        echo "Ban $1 successfully" >> ban.log
-    fi
+	if [ $# -eq 1 ]; then
+		iptables -I INPUT -s $1 -j DROP
+		echo "Ban $1 successfully"
+	elif [ $# -ge 2 ]; then
+		iptables -I INPUT -s $1 -j DROP
+		echo "Ban $1 because $2"
+	fi
 }
 
 delBan(){
-    if [ $# -eq 1 ]; then
-        iptables -D INPUT $1
-        echo "Unban No.$1 successfully"
-    fi
+	if [ $# -eq 1 ]; then
+		iptables -D INPUT $1
+		echo "Unban No.$1 successfully"
+	fi
 }
 
 delAllBan(){
-    BAN_NUM_LIST=`iptables -L INPUT --line-numbers | sed -e '1d' | grep 'DROP' | awk '{print $1}'`;
-    COUNT=0
-    for BAN_NUM in $BAN_NUM_LIST
-    do
-        iptables -D INPUT $((BAN_NUM-COUNT))
-        let COUNT++
-    done
+	BAN_NUM_LIST=`iptables -L INPUT --line-numbers | sed -e '1d' | grep 'DROP' | awk '{print $1}'`;
+	COUNT=0
+	for BAN_NUM in $BAN_NUM_LIST
+	do
+		iptables -D INPUT $((BAN_NUM-COUNT))
+		let COUNT++
+	done
 	echo "Unban all IP successfully"
 }
 
@@ -43,7 +45,7 @@ case $1 in
 showList
 ;;
 -b)
-addBan $2
+addBan $2 $3
 ;;
 -u)
 delBan $2
