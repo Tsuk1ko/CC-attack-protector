@@ -1,10 +1,11 @@
 #!/bin/bash
 #配置
 LOG_FILES="/www/wwwlogs/*.log"	#指定日志文件
-LIMIT_MAX_TIMES=70				#在10秒内超过这么多连接日志数的会直接Ban
-LIMIT_TIMES=15					#在10秒内超过这么多连接日志数的会检测请求总大小有没有超过下面设定的这个值
-LIMIT_MAX_SIZE=52428800			#52428800 = 50MiB
-SCKEY=""	#Server酱服务的SCKRY，用于通知CC攻击情况，https://sc.ftqq.com
+SCKEY=""	#Server酱服务的SCKEY，用于通知CC攻击情况，https://sc.ftqq.com
+LIMIT_REPEAT=20		#重复的请求次数，超过直接封
+LIMIT_TIMES=50		#否则，在10秒内超过这么多连接日志数的会进入检测，并且满足下面这个条件的会被封禁
+LIMIT_FLOW=62914560	#请求大小之和 62914560 = 60MiB
+
 
 #开始
 #取得当前时间的10秒前（舍去秒个位）
@@ -24,48 +25,50 @@ IFS_old=$IFS
 IFS=$'\n'
 for LIST_LINE in `cat $TMP_IP_LIST`
 do
-    #当前行IP访问量
-    CUR_TIMES=`echo $LIST_LINE | awk '{print $1}'`
-    #如果访问量大于设定最大量直接Ban
-    if [ $CUR_TIMES -ge $LIMIT_MAX_TIMES ]; then
-        echo $LIST_LINE  | awk '{print $2}' >> $TMP_LIST
-    #如果访问量大于设定次大量则判断流量
-    elif [ $CUR_TIMES -ge $LIMIT_TIMES ]; then
-        TOTAL_FLOW=0
-        #某IP的单条流量记录
-        for LINE_LOG_FLOW in `grep -h $LIST_LINE $TMP_LOG | awk '{print $10}'`
-        do
-            TOTAL_FLOW=$((TOTAL_FLOW+LINE_LOG_FLOW))
-        done
-        #如果流量大于设定的最大流量值则Ban
-        if [ $TOTAL_FLOW -ge $LIMIT_MAX_SIZE ]; then
-            echo $LIST_LINE  | awk '{print $2}' >> $TMP_LIST
-        fi
-    fi
+	CUR_TIMES=`echo $LIST_LINE | awk '{print $1}'`
+	CUR_IP=`echo $LIST_LINE | awk '{print $2}'`
+	#判断重复请求次数
+	CUR_REPEAT=`grep -h $CUR_IP $TMP_LOG | awk '{print $7}' | sort | uniq -c | sort -nr | head -1 | awk '{print $1}'`
+	if [ $CUR_REPEAT -ge $LIMIT_REPEAT ]; then
+		echo "$CUR_IP 重复请求次数$CUR_REPEAT>=$LIMIT_REPEAT" >> $TMP_LIST
+	#判断访问量
+	elif [ $CUR_TIMES -ge $LIMIT_TIMES ]; then
+		TOTAL_FLOW=0
+		#某IP的单条流量记录
+		for LINE_LOG_FLOW in `grep -h $CUR_IP $TMP_LOG | awk '{print $10}'`
+		do
+			TOTAL_FLOW=$((TOTAL_FLOW+LINE_LOG_FLOW))
+		done
+		#如果流量大于设定的最大流量值则Ban
+		if [ $TOTAL_FLOW -ge $LIMIT_FLOW ]; then
+			echo "$CUR_IP 请求流量$TOTAL_FLOW>=$LIMIT_FLOW" >> $TMP_LIST
+		fi
+	fi
 done
 IFS=$IFS_old
 
 #Ban他妈的
 TIME_FLAG=1
 if [ -n "`cat $TMP_LIST`" ]; then
-    PWDIR="$( cd "$( dirname "$0" )" && pwd )"
-    IP_LIST="";
-    for TMP_LINE in `cat $TMP_LIST`
-    do
-        TEST_R=`iptables -L INPUT -n --line-numbers | grep 'DROP' | grep "$TMP_LINE"`
-        if [ -z "$TEST_R" ]; then
-            if [ $TIME_FLAG -eq 1 ]; then
-                echo -e "\033[033m`date`\033[0m"
-                date >> "$PWDIR"/ban.log
-                TIME_FLAG=0
-            fi
-            bash "$PWDIR"/ban.sh -b $TMP_LINE &
-            IP_LIST=${IP_LIST}"$TMP_LINE "
-        fi
-    done
-    if [ -n "$SCKEY" ]; then
-    	curl -d "text=CC攻击警报&desp=$IP_LIST" "https://sc.ftqq.com/$SCKEY.send" >& /dev/null &
-    fi
+	PWDIR="$( cd "$( dirname "$0" )" && pwd )"
+	IP_LIST="";
+	for TMP_LINE in `cat $TMP_LIST`
+	do
+		TEST_R=`iptables -L INPUT -n --line-numbers | grep 'DROP' | grep "$TMP_LINE"`
+		if [ -z "$TEST_R" ]; then
+			if [ $TIME_FLAG -eq 1 ]; then
+				echo -e "\033[033m`date`\033[0m"
+				date >> "$PWDIR"/cc.log
+				TIME_FLAG=0
+			fi
+			bash "$PWDIR"/ban.sh -b $TMP_LINE &
+			echo "Ban $TMP_LINE successfully" >> "$PWDIR"/cc.log
+			IP_LIST=${IP_LIST}"$TMP_LINE "
+		fi
+	done
+	if [ -n "$SCKEY" ]; then
+		curl -d "text=CC攻击警报&desp=$IP_LIST" "https://sc.ftqq.com/$SCKEY.send" >& /dev/null &
+	fi
 fi
 
 #删除临时文件
