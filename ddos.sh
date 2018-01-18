@@ -58,7 +58,7 @@ if [ -n "`cat $TMP_LIST`" ]; then
 	do
 		TMP_IP=`echo $TMP_LINE | awk '{print $1}'`
 		TMP_REASON=`echo $TMP_LINE | awk '{print $2}'`
-		TEST_R=`iptables -L INPUT -n --line-numbers | grep 'DROP' | grep "$TMP_LINE"`
+		TEST_R=`iptables -L INPUT -n --line-numbers | grep 'DROP' | grep "$TMP_IP"`
 		if [ -z "$TEST_R" ]; then
 			if [ $TIME_FLAG -eq 1 ]; then
 				echo -e "\033[033m`date`\033[0m"
