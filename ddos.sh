@@ -30,7 +30,7 @@ do
 	#判断重复请求次数
 	CUR_REPEAT=`grep -h $CUR_IP $TMP_LOG | awk '{print $7}' | sort | uniq -c | sort -nr | head -1 | awk '{print $1}'`
 	if [ $CUR_REPEAT -ge $LIMIT_REPEAT ]; then
-		echo "$CUR_IP 重复请求次数$CUR_REPEAT>=$LIMIT_REPEAT" >> $TMP_LIST
+		echo "$CUR_IP REPEAT:$CUR_REPEAT>=$LIMIT_REPEAT" >> $TMP_LIST
 	#判断访问量
 	elif [ $CUR_TIMES -ge $LIMIT_TIMES ]; then
 		TOTAL_FLOW=0
@@ -41,11 +41,10 @@ do
 		done
 		#如果流量大于设定的最大流量值则Ban
 		if [ $TOTAL_FLOW -ge $LIMIT_FLOW ]; then
-			echo "$CUR_IP 请求流量$TOTAL_FLOW>=$LIMIT_FLOW" >> $TMP_LIST
+			echo "$CUR_IP FLOW:$TOTAL_FLOW>=$LIMIT_FLOW" >> $TMP_LIST
 		fi
 	fi
 done
-IFS=$IFS_old
 
 #Ban他妈的
 TIME_FLAG=1
@@ -54,6 +53,8 @@ if [ -n "`cat $TMP_LIST`" ]; then
 	IP_LIST="";
 	for TMP_LINE in `cat $TMP_LIST`
 	do
+		TMP_IP=`echo $TMP_LINE | awk '{print $1}'`
+		TMP_REASON=`echo $TMP_LINE | awk '{print $2}'`
 		TEST_R=`iptables -L INPUT -n --line-numbers | grep 'DROP' | grep "$TMP_LINE"`
 		if [ -z "$TEST_R" ]; then
 			if [ $TIME_FLAG -eq 1 ]; then
@@ -61,15 +62,16 @@ if [ -n "`cat $TMP_LIST`" ]; then
 				date >> "$PWDIR"/cc.log
 				TIME_FLAG=0
 			fi
-			bash "$PWDIR"/ban.sh -b $TMP_LINE &
-			echo "Ban $TMP_LINE successfully" >> "$PWDIR"/cc.log
-			IP_LIST=${IP_LIST}"$TMP_LINE "
+			bash "$PWDIR"/ban.sh -b $TMP_IP $TMP_REASON &
+			echo "Ban $TMP_IP because $TMP_REASON" >> "$PWDIR"/cc.log
+			IP_LIST=${IP_LIST}"$TMP_IP "
 		fi
 	done
 	if [ -n "$SCKEY" ]; then
 		curl -d "text=CC攻击警报&desp=$IP_LIST" "https://sc.ftqq.com/$SCKEY.send" >& /dev/null &
 	fi
 fi
+IFS=$IFS_old
 
 #删除临时文件
 rm $TMP_IP_LIST

@@ -16,6 +16,9 @@ addBan(){
 	if [ $# -eq 1 ]; then
 		iptables -I INPUT -s $1 -j DROP
 		echo "Ban $1 successfully"
+	elif [ $# -ge 2 ]; then
+		iptables -I INPUT -s $1 -j DROP
+		echo "Ban $1 because $2"
 	fi
 }
 
@@ -42,7 +45,7 @@ case $1 in
 showList
 ;;
 -b)
-addBan $2
+addBan $2 $3
 ;;
 -u)
 delBan $2
