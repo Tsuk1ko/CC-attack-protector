@@ -30,7 +30,7 @@ delBan(){
 }
 
 delAllBan(){
-	BAN_NUM_LIST=`iptables -L INPUT --line-numbers | sed -e '1d' | grep 'DROP' | awk '{print $1}'`;
+	BAN_NUM_LIST=`iptables -L INPUT -n --line-numbers | sed -e '1d' | grep 'DROP' | awk '{print $1}'`;
 	COUNT=0
 	for BAN_NUM in $BAN_NUM_LIST
 	do
